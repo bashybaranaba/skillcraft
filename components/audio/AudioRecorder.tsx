@@ -4,8 +4,9 @@
 import React, { useState, useRef } from "react";
 import AudioPlayer from "./AudioPlayer";
 import { Button } from "@/components/ui/button";
-import { MicIcon, CircleCheck } from "lucide-react";
+import { MicIcon, CircleCheck, Loader2 } from "lucide-react";
 import IndustrySelector from "@/components/industry/IndustrySelector";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AudioRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -13,6 +14,7 @@ const AudioRecorder: React.FC = () => {
   const [responseAudio, setResponseAudio] = useState<string | null>(null);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingScenario, setLoadingScenario] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [scenario, setScenario] = useState<string | null>(null);
   const [scenarioAudio, setScenarioAudio] = useState<string | null>(null);
@@ -25,6 +27,7 @@ const AudioRecorder: React.FC = () => {
   });
 
   const handleIndustrySelect = async (industry: string) => {
+    setLoadingScenario(true);
     setSelectedIndustry(industry);
     setStatusMessage("Generating scenario...");
     setScenario(null);
@@ -59,6 +62,7 @@ const AudioRecorder: React.FC = () => {
       console.error("Error generating scenario:", data.error);
       setStatusMessage("Error generating scenario.");
     }
+    setLoadingScenario(false);
   };
 
   const startRecording = async () => {
@@ -214,90 +218,105 @@ const AudioRecorder: React.FC = () => {
   return (
     <div className="p-12 grid grid-cols-12 ">
       {/* Left Side */}
-      <div className="col-span-6 p-4 border-r">
-        {!selectedIndustry && (
-          <IndustrySelector onSelect={handleIndustrySelect} />
-        )}
+      <div className="col-span-12 lg:col-span-6 p-4 border-r">
+        <div className="">
+          {!selectedIndustry && (
+            <IndustrySelector onSelect={handleIndustrySelect} />
+          )}
 
-        {selectedIndustry && scenario && scenarioAudio && (
-          <div className="p-2">
-            <div className="mt-4">
-              <div className="flex items-center space-x-4">
-                <div
-                  className={`rounded-full p-1  border ${
-                    isRecording ? "" : ""
-                  }`}
-                >
-                  <button
-                    onClick={isRecording ? stopRecording : startRecording}
-                    className={`p-6   rounded-full ${
-                      isRecording
-                        ? "bg-white border animate-pulse text-blue-500"
-                        : "bg-blue-500 text-white"
+          {loadingScenario && <Loader2 className="h-6 w-6 animate-spin" />}
+
+          {selectedIndustry && scenario && scenarioAudio && (
+            <div className="p-2">
+              <div className="mt-4">
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`rounded-full p-1  border ${
+                      isRecording ? "" : ""
                     }`}
-                    disabled={!scenario}
                   >
-                    <MicIcon className="h-5 w-5" />
-                  </button>
-                </div>
+                    <button
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={`p-6   rounded-full ${
+                        isRecording
+                          ? "bg-white border animate-pulse text-blue-500"
+                          : "bg-blue-500 text-white"
+                      }`}
+                      disabled={!scenario}
+                    >
+                      <MicIcon className="h-5 w-5" />
+                    </button>
+                  </div>
 
-                <div className="flex items-center justify-center mt-2">
-                  <p className="text-gray-500 text-xs mr-1">{statusMessage}</p>
-                  {isRecording && (
-                    <div className="h-2 w-2 rounded-full animate-ping bg-blue-600"></div>
-                  )}
-                  {!loading && responseAudio && (
-                    <CircleCheck className="h-3 w-3 text-gray-500" />
-                  )}
+                  <div className="flex items-center justify-center mt-2">
+                    <p className="text-gray-500 text-xs mr-1">
+                      {statusMessage}
+                    </p>
+                    {isRecording && (
+                      <div className="h-2 w-2 rounded-full animate-ping bg-blue-600"></div>
+                    )}
+                    {!loading && responseAudio && (
+                      <CircleCheck className="h-3 w-3 text-gray-500" />
+                    )}
+                  </div>
                 </div>
+                {scenarioAudio && !responseAudio && (
+                  <AudioPlayer audio={scenarioAudio} loading={false} />
+                )}
+                {responseAudio && (
+                  <AudioPlayer audio={responseAudio} loading={loadingAudio} />
+                )}
               </div>
-              {scenarioAudio && !responseAudio && (
-                <AudioPlayer audio={scenarioAudio} loading={false} />
-              )}
-              {responseAudio && (
-                <AudioPlayer audio={responseAudio} loading={loadingAudio} />
-              )}
-            </div>
-            <div className="mt-2 p-4 border rounded-xl">
-              <h2 className="text-xl font-semibold mb-2">Scenario</h2>
+              <div className="mt-2 p-4 border rounded-xl">
+                <h2 className="text-xl font-semibold mb-2">Scenario</h2>
 
-              <p className="mb-4">{scenario}</p>
+                <p className="mb-4">{scenario}</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Right Side */}
-      <div className="col-span-6  p-4">
-        {analysisResult ? (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
-            <p className="mb-4">
-              <strong>General Comment:</strong> {analysisResult.general_comment}
-            </p>
-            <ul className="space-y-2">
-              <li>
-                <strong>Communication:</strong> {analysisResult.communication}
-              </li>
-              <li>
-                <strong>Social Intelligence:</strong>{" "}
-                {analysisResult.social_intelligence}
-              </li>
-              <li>
-                <strong>Problem-Solving:</strong>{" "}
-                {analysisResult.problem_solving}
-              </li>
-              <li>
-                <strong>Creative Agency:</strong>{" "}
-                {analysisResult.creative_agency}
-              </li>
-            </ul>
-          </div>
-        ) : (
-          <p className="text-gray-500">
-            Analysis results will appear here after you record your response.
-          </p>
-        )}
+      <div className="col-span-12 lg:col-span-6 p-1 mx-3 border border-indigo-300 rounded-xl h-[530px]">
+        <div className="border p-3 rounded-lg h-full ">
+          <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
+          {analysisResult ? (
+            <ScrollArea className="h-[450px] pr-3">
+              <p className="mb-4">
+                <strong>General Comment</strong>{" "}
+                {analysisResult.general_comment}
+              </p>
+              <div className="flex flex-col items-center">
+                <div className="border border-indigo-200 rounded-xl p-3 m-1">
+                  <strong>Communication</strong>
+                  <p className="text-sm">{analysisResult.communication}</p>
+                </div>
+                <div className="border border-indigo-200 rounded-xl p-3 m-1">
+                  <strong>Social Intelligence</strong>{" "}
+                  <p className="text-sm">
+                    {analysisResult.social_intelligence}
+                  </p>
+                </div>
+                <div className="border border-indigo-200 rounded-xl p-3 m-1">
+                  <strong>Problem-Solving</strong>{" "}
+                  <p className="text-sm">{analysisResult.problem_solving}</p>
+                </div>
+                <div className="border border-indigo-200 rounded-xl p-3 m-1">
+                  <strong>Creative Agency</strong>{" "}
+                  <p className="text-sm">{analysisResult.creative_agency}</p>
+                </div>
+              </div>
+            </ScrollArea>
+          ) : (
+            <div>
+              <p className="text-gray-500">
+                Analysis results will appear here after you record your
+                response.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
