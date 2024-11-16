@@ -88,6 +88,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/auth/signin", // Customize the sign-in page URL
+    signIn: "/auth/signup", // Customize the sign-in page URL
   },
 };

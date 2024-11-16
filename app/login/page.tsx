@@ -12,16 +12,10 @@ function LoginPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "loading") {
-      // Don't redirect if the session is still loading
-      return;
-    }
-
-    if (status === "authenticated" && session) {
-      // Only redirect if authenticated and session exists
+    if (status === "authenticated") {
       router.replace("/main");
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

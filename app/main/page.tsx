@@ -1,7 +1,15 @@
-import React from "react";
+"use client"; // Make sure this is the first line of the file
 
-function page() {
-  return <div>Main Page</div>;
+import React from "react";
+import { signOut } from "next-auth/react";
+
+function Page() {
+  return (
+    <div>
+      <h1>Main Page</h1>
+      <button onClick={() => signOut({ callbackUrl: "/" })}>Logout</button>
+    </div>
+  );
 }
 
-export default page;
+export default Page;
