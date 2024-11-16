@@ -4,7 +4,7 @@
 import React, { useState, useRef } from "react";
 import AudioPlayer from "./AudioPlayer";
 import { Button } from "@/components/ui/button";
-import { MicIcon } from "lucide-react";
+import { MicIcon, CircleCheck } from "lucide-react";
 
 const AudioRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -192,10 +192,13 @@ const AudioRecorder: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 mt-2">
-          <p className="text-gray-600 text-sm">{statusMessage}</p>
+        <div className="flex items-center justify-cernter mt-2">
+          <p className="text-gray-500 text-xs mr-1">{statusMessage}</p>
           {isRecording && (
             <div className="h-2 w-2 rounded-full animate-ping bg-blue-600"></div>
+          )}
+          {!loading && responseAudio && (
+            <CircleCheck className="h-3 w-3 text-gray-500" />
           )}
         </div>
       </div>
