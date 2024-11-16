@@ -14,12 +14,10 @@ import {
   Database,
 } from "lucide-react";
 import { AnimatedBeams } from "@/components/workflow/AnimatedBeam";
-import { AnimatedBeam } from "@/components/ui/animated-beam";
 import BlurFade from "@/components/ui/blur-fade";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
 import { BorderBeam } from "@/components/ui/border-beam";
-import Marquee from "@/components/ui/marquee";
 
 const features = [
   {

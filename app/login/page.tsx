@@ -7,6 +7,57 @@ import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 
 function LoginPage() {
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "loading") {
+      // Don't redirect if the session is still loading
+      return;
+    }
+
+    if (status === "authenticated" && session) {
+      // Only redirect if authenticated and session exists
+      router.replace("/main");
+    }
+  }, [status, session, router]);
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!isValidEmail(email)) {
+      setError("Invalid email address");
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (res?.error) {
+      setError("Invalid email or password");
+    } else {
+      setError("");
+      if (res?.url) router.replace(res.url); // Redirect to the URL provided by the server
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
       <div className="p-6 w-full max-w-md bg-white shadow-md rounded-md">
@@ -15,7 +66,7 @@ function LoginPage() {
           Enter your details to log in to this app
           <br />
         </p>
-        <form className="space-y-3">
+        <form className="space-y-3" onSubmit={handleSubmit}>
           <div>
             <Input
               type="email"
@@ -49,7 +100,9 @@ function LoginPage() {
               Log in with email
             </Button>
           </div>
-          <p className="text-sm text-red-500 text-center mt-2"></p>
+          <p className="text-sm text-red-500 text-center mt-2">
+            {error && error}
+          </p>
           <div className="flex items-center mb-4">
             <div className="flex-grow h-px bg-gray-300" />
             <span className="text-sm text-gray-500 mx-2">or continue with</span>

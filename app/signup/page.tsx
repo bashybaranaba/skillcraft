@@ -16,6 +16,93 @@ import {
 } from "@/components/ui/dialog";
 
 function SignupPage() {
+  const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "loading") {
+      // Don't redirect if the session is still loading
+      return;
+    }
+
+    if (status === "authenticated" && session) {
+      // Only redirect if authenticated and session exists
+      router.replace("/main");
+    }
+  }, [status, session, router]);
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const data = Object.fromEntries(formData.entries());
+    console.log(data);
+
+    const { name, email, password, confirmPassword } = data;
+
+    if (!isValidEmail(email as string)) {
+      setError("Invalid email address");
+      return;
+    }
+
+    if (!password || (password as string).length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError("You must accept the terms and conditions to proceed");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          confirmPassword,
+        }),
+      });
+
+      if (res.status === 400) {
+        setError("User already exists");
+      } else if (res.status === 200) {
+        const result = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
+
+        if (result?.error) {
+          setError("Error occurred. Please try again.");
+        } else {
+          router.push("/information");
+        }
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } catch (err) {
+      setError("Error occurred. Please try again.");
+      console.error(err);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
       <div className="p-6 w-full max-w-md bg-white shadow-md rounded-md">
@@ -26,7 +113,7 @@ function SignupPage() {
           Enter your details to sign up for this app
           <br />
         </p>
-        <form className="space-y-3">
+        <form className="space-y-3" onSubmit={handleSubmit}>
           <div>
             <Input
               type="name"
@@ -68,7 +155,9 @@ function SignupPage() {
               Sign up with email
             </Button>
           </div>
-          <p className="text-sm text-red-500 text-center mt-2"></p>
+          <p className="text-sm text-red-500 text-center mt-2">
+            {error && error}
+          </p>
           <div className="flex items-center mb-4">
             <div className="flex-grow h-px bg-gray-300" />
             <span className="text-sm text-gray-500 mx-2">or continue with</span>
@@ -110,7 +199,11 @@ function SignupPage() {
             </Button>
           </div>
           <div className="flex justify-center items-center space-x-4">
-            <Checkbox id="terms" />
+            <Checkbox
+              id="terms"
+              checked={acceptedTerms}
+              onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
+            />
             <p className="text-sm text-center text-gray-500">
               I have read and agree to the
               <br />
