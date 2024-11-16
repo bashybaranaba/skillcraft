@@ -178,7 +178,7 @@ export default function Home() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-center mx-auto">
           {[
             {
-              href: "#lackfeedback",
+              href: "#mediocrefeedback",
               title: "Mediocre Feedback",
               description:
                 "Not receiving actionable feedback to track your soft skill development.",
@@ -433,7 +433,7 @@ export default function Home() {
               <a href="/terms" className="hover:text-blue-400 text-sm">
                 Terms of Service
               </a>
-              <a href="/contact" className="hover:text-blue-400 text-sm">
+              <a href="#contact" className="hover:text-blue-400 text-sm">
                 Contact Us
               </a>
             </div>
