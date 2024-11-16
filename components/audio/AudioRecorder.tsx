@@ -224,7 +224,17 @@ const AudioRecorder: React.FC = () => {
             <IndustrySelector onSelect={handleIndustrySelect} />
           )}
 
-          {loadingScenario && <Loader2 className="h-6 w-6 animate-spin" />}
+          {loadingScenario && (
+            <div className="flex flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              <p className="text-gray-500 text-lg mt-2">
+                Generating scenario...
+              </p>
+              <p className="text-gray-500 text-sm mt-1">
+                Prepare to respond to scenario by recording your audio
+              </p>
+            </div>
+          )}
 
           {selectedIndustry && scenario && scenarioAudio && (
             <div className="p-2">
@@ -278,9 +288,9 @@ const AudioRecorder: React.FC = () => {
       </div>
 
       {/* Right Side */}
-      <div className="col-span-12 lg:col-span-6 p-1 mx-3 border border-indigo-300 rounded-xl h-[530px]">
+      <div className="col-span-12 lg:col-span-6 p-1 mx-3 border border-indigo-300 rounded-xl h-[530px] w-full">
         <div className="border p-3 rounded-lg h-full ">
-          <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
+          <h2 className="text-xl font-semibold mb-1">Analysis Results</h2>
           {analysisResult ? (
             <ScrollArea className="h-[450px] pr-3">
               <p className="mb-4">
@@ -310,7 +320,7 @@ const AudioRecorder: React.FC = () => {
             </ScrollArea>
           ) : (
             <div>
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Analysis results will appear here after you record your
                 response.
               </p>

@@ -12,18 +12,18 @@ export async function POST(request: Request) {
     const { industry } = await request.json();
 
     const prompt = `
-You are a creative assistant that generates simple scenarios for vocational students to assess their soft skills based on their chosen industry.
+        You are a creative assistant that generates simple scenarios for vocational students to assess their soft skills based on their chosen industry.
 
-Industry: ${industry}
+        Industry: ${industry}
 
-Generate a concise scenario (max 100 words) that is relevant to the industry and can help assess the following soft skills:
-- Communication
-- Social Intelligence
-- Problem-Solving
-- Creative Agency
+        Generate a concise and simple scenario with a single matter (max 100 words) that is relevant to the industry and can help assess the following soft skills:
+        - Communication
+        - Social Intelligence
+        - Problem-Solving
+        - Creative Agency
 
-Output the scenario in plain text.
-`;
+        Output the scenario in plain text.
+    `;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4", // Use the appropriate model

@@ -10,9 +10,11 @@ import {
   Hammer,
   Zap,
   Book,
+  ClipboardList,
 } from "lucide-react";
 
 const industries = [
+  { name: "General ", icon: ClipboardList, color: "text-teal-500" }, // Added General Tasks
   { name: "IT Specialist", icon: Monitor, color: "text-blue-500" },
   { name: "Car Repairs", icon: Car, color: "text-red-500" },
   { name: "Food Service", icon: Utensils, color: "text-green-500" },
@@ -34,19 +36,24 @@ interface IndustrySelectorProps {
 const IndustrySelector: React.FC<IndustrySelectorProps> = ({ onSelect }) => {
   return (
     <div className="p-1">
-      <h2 className="text-xl font-semibold mb-4">Select Your Industry</h2>
-      <ul className="space-y-2">
+      <h2 className="text-xl font-semibold mb-1">
+        Select Your Vocational Study Specialization
+      </h2>
+      <p className="text-sm text-gray-500 mb-3">
+        The Bot will then give you an example scenario which you can respond to.
+      </p>
+      <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {industries.map(({ name, icon: Icon, color }) => (
           <li
             key={name}
-            className="border p-0.5 border-blue-300 rounded-xl flex items-center"
+            className="flex items-center justify-center h-32 w-full border border-blue-300 rounded-xl p-1"
           >
             <button
-              className="w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-100 flex items-center space-x-2"
+              className="w-full h-full text-center px-4 py-2 flex flex-col items-center justify-center space-y-2 rounded-lg border hover:bg-gray-100"
               onClick={() => onSelect(name)}
             >
-              <Icon className={`${color} w-5 h-5`} />
-              <span>{name}</span>
+              <Icon className={`${color} w-8 h-8`} />
+              <span className="text-sm font-medium">{name}</span>
             </button>
           </li>
         ))}
