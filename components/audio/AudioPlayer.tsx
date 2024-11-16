@@ -22,10 +22,11 @@ export default function AudioPlayer({
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
         audioRef.current.play();
+        setIsPlaying(true);
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -48,6 +49,23 @@ export default function AudioPlayer({
     }
   };
 
+  // Autoplay when audio is available
+  useEffect(() => {
+    if (audio && audioRef.current) {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.error("Error playing audio:", error);
+            // Handle autoplay restriction errors here if necessary
+          });
+      }
+    }
+  }, [audio]);
+
   // Add and remove event listener for "ended" event
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -65,7 +83,7 @@ export default function AudioPlayer({
     <div className="mt-4">
       {/* If not loading and the audio URL is valid */}
       {!loading && audio && (
-        <div className="flex flex-col items-center justify-center w-full p-4 border rounded-lg">
+        <div className="flex flex-col items-center justify-center w-full p-4 border rounded-xl">
           <div className="flex items-center space-x-4 w-full">
             <audio
               ref={audioRef}

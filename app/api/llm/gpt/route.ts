@@ -12,20 +12,38 @@ export const revalidate = 0;
 export async function POST(request: Request) {
   try {
     const requestBody = await request.json();
-    const { instruction, inputs, outputs, memory, image } = requestBody;
+    const { instruction, inputs, memory, image } = requestBody;
 
     const prompt = `
-      You are an assistant designed to output JSON.
-      Follow this intruction: ${instruction}
+You are an assistant designed to analyze a user's response to a given scenario and evaluate their soft skills.
 
-      Here is the past interaction data: ${JSON.stringify(memory)}
-      The past interaction data is provided so that you do not repeat yourself. That means you need to keep track of inputs and ouputs of the past interactions to provide a more relevant response.
-      Note that In the case of the past interaction data, the inputs are the past data that you have received and the outputs are the responses that you have provided. 
-      Strictly use the past interaction data to provide an appropriate response.
+Instruction: ${instruction}
 
-      and you should output the json in the following format:
-      ${outputs}
-      Note: the output fields in the JSON should be of string type.
+Here is the user's response:
+"${inputs}"
+
+Here is the past interaction data: ${JSON.stringify(memory)}
+
+Evaluate the user's response based on the following criteria:
+- Communication
+- Social Intelligence
+- Problem-Solving
+- Creative Agency
+
+Provide a general comment and detailed feedback for each criterion.
+
+Output the analysis in the following JSON format:
+
+{
+  "general_comment": "string",
+  "communication": "string",
+  "social_intelligence": "string",
+  "problem_solving": "string",
+  "creative_agency": "string"
+}
+
+Note: The output fields should be of string type.
+
     `;
 
     type UserContent =

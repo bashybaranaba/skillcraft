@@ -5,6 +5,7 @@ import React, { useState, useRef } from "react";
 import AudioPlayer from "./AudioPlayer";
 import { Button } from "@/components/ui/button";
 import { MicIcon, CircleCheck } from "lucide-react";
+import IndustrySelector from "@/components/industry/IndustrySelector";
 
 const AudioRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -12,6 +13,10 @@ const AudioRecorder: React.FC = () => {
   const [responseAudio, setResponseAudio] = useState<string | null>(null);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
+  const [scenario, setScenario] = useState<string | null>(null);
+  const [scenarioAudio, setScenarioAudio] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const memoryRef = useRef<{ inputs: string[]; outputs: string[] }>({
@@ -19,11 +24,48 @@ const AudioRecorder: React.FC = () => {
     outputs: [],
   });
 
+  const handleIndustrySelect = async (industry: string) => {
+    setSelectedIndustry(industry);
+    setStatusMessage("Generating scenario...");
+    setScenario(null);
+    setScenarioAudio(null);
+
+    // Fetch scenario from API
+    const response = await fetch("/api/llm/scenario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ industry }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setScenario(data.scenario);
+      setStatusMessage("Start recording yourself");
+
+      // Generate audio for scenario
+      const ttsResponse = await fetch("/api/voice/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: data.scenario }),
+      });
+
+      if (ttsResponse.ok) {
+        const ttsBlob = await ttsResponse.blob();
+        const audioUrl = URL.createObjectURL(ttsBlob);
+        setScenarioAudio(audioUrl);
+      }
+    } else {
+      console.error("Error generating scenario:", data.error);
+      setStatusMessage("Error generating scenario.");
+    }
+  };
+
   const startRecording = async () => {
     setLoading(true);
     setResponseAudio(null);
     setIsRecording(true);
-    setStatusMessage("Listening ");
+    setStatusMessage("Listening");
     audioChunksRef.current = [];
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -67,8 +109,7 @@ const AudioRecorder: React.FC = () => {
 
           // Prepare request to /api/llm/gpt
           const instruction =
-            "Provide constructive feedback on the user's input focusing on communication, empathy, teamwork, and conflict resolution.";
-          const outputs = '{ "feedback": "string" }';
+            "Analyze the user's response to the scenario and provide feedback on their soft skills.";
           const memory = memoryRef.current;
 
           // Add current input to memory
@@ -82,17 +123,15 @@ const AudioRecorder: React.FC = () => {
             body: JSON.stringify({
               instruction,
               inputs: transcription,
-              outputs,
               memory,
             }),
           });
 
           const llmData = await llmResponse.json();
-          console.log("LLM GPT Data:", llmData);
+          console.log("LLM Data:", llmData);
 
           if (llmResponse.ok) {
             const assistantContent = llmData;
-            console.log("Assistant Content:", assistantContent);
 
             // Remove backticks and sanitize GPT output before parsing
             const cleanedOutput = assistantContent
@@ -101,9 +140,9 @@ const AudioRecorder: React.FC = () => {
               .trim();
 
             const feedbackJSON = JSON.parse(cleanedOutput);
-            console.log("Feedback JSON:", feedbackJSON);
-            const feedbackText = feedbackJSON.feedback;
-            console.log("Feedback Text:", feedbackText);
+            setAnalysisResult(feedbackJSON);
+
+            const feedbackText = feedbackJSON.general_comment;
 
             // Add output to memory
             memory.outputs.push(feedbackText);
@@ -173,39 +212,93 @@ const AudioRecorder: React.FC = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col items-center space-x-4">
-        <div className={`rounded-full p-1  border ${isRecording ? "" : ""}`}>
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`p-6   rounded-full ${
-              isRecording
-                ? "bg-white border animate-pulse text-blue-500"
-                : "bg-blue-500 text-white"
-            }`}
-          >
-            {isRecording ? (
-              <MicIcon className="h-5 w-5" />
-            ) : (
-              <MicIcon className="h-5 w-5" />
-            )}
-          </button>
-        </div>
+    <div className="p-12 grid grid-cols-12 ">
+      {/* Left Side */}
+      <div className="col-span-6 p-4 border-r">
+        {!selectedIndustry && (
+          <IndustrySelector onSelect={handleIndustrySelect} />
+        )}
 
-        <div className="flex items-center justify-cernter mt-2">
-          <p className="text-gray-500 text-xs mr-1">{statusMessage}</p>
-          {isRecording && (
-            <div className="h-2 w-2 rounded-full animate-ping bg-blue-600"></div>
-          )}
-          {!loading && responseAudio && (
-            <CircleCheck className="h-3 w-3 text-gray-500" />
-          )}
-        </div>
+        {selectedIndustry && scenario && scenarioAudio && (
+          <div className="p-2">
+            <div className="mt-4">
+              <div className="flex items-center space-x-4">
+                <div
+                  className={`rounded-full p-1  border ${
+                    isRecording ? "" : ""
+                  }`}
+                >
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`p-6   rounded-full ${
+                      isRecording
+                        ? "bg-white border animate-pulse text-blue-500"
+                        : "bg-blue-500 text-white"
+                    }`}
+                    disabled={!scenario}
+                  >
+                    <MicIcon className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center mt-2">
+                  <p className="text-gray-500 text-xs mr-1">{statusMessage}</p>
+                  {isRecording && (
+                    <div className="h-2 w-2 rounded-full animate-ping bg-blue-600"></div>
+                  )}
+                  {!loading && responseAudio && (
+                    <CircleCheck className="h-3 w-3 text-gray-500" />
+                  )}
+                </div>
+              </div>
+              {scenarioAudio && !responseAudio && (
+                <AudioPlayer audio={scenarioAudio} loading={false} />
+              )}
+              {responseAudio && (
+                <AudioPlayer audio={responseAudio} loading={loadingAudio} />
+              )}
+            </div>
+            <div className="mt-2 p-4 border rounded-xl">
+              <h2 className="text-xl font-semibold mb-2">Scenario</h2>
+
+              <p className="mb-4">{scenario}</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {responseAudio && (
-        <AudioPlayer audio={responseAudio} loading={loadingAudio} />
-      )}
+      {/* Right Side */}
+      <div className="col-span-6  p-4">
+        {analysisResult ? (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
+            <p className="mb-4">
+              <strong>General Comment:</strong> {analysisResult.general_comment}
+            </p>
+            <ul className="space-y-2">
+              <li>
+                <strong>Communication:</strong> {analysisResult.communication}
+              </li>
+              <li>
+                <strong>Social Intelligence:</strong>{" "}
+                {analysisResult.social_intelligence}
+              </li>
+              <li>
+                <strong>Problem-Solving:</strong>{" "}
+                {analysisResult.problem_solving}
+              </li>
+              <li>
+                <strong>Creative Agency:</strong>{" "}
+                {analysisResult.creative_agency}
+              </li>
+            </ul>
+          </div>
+        ) : (
+          <p className="text-gray-500">
+            Analysis results will appear here after you record your response.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
