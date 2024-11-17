@@ -277,8 +277,8 @@ const AudioRecorder: React.FC = () => {
                   <AudioPlayer audio={responseAudio} loading={loadingAudio} />
                 )}
               </div>
-              <div className="mt-2 p-4 border rounded-xl">
-                <h2 className="text-xl font-semibold mb-2">Scenario</h2>
+              <div className="mt-2 p-5 border rounded-xl bg-indigo-500 text-white">
+                <h2 className="text-xl font-semibold mb-1">Scenario</h2>
 
                 <p className="mb-4">{scenario}</p>
               </div>

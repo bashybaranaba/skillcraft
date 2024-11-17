@@ -30,7 +30,8 @@ Evaluate the user's response based on the following criteria:
 - Problem-Solving
 - Creative Agency
 
-Provide a general comment and detailed feedback for each criterion.
+Provide a general comment and detailed feedback for each criterion. It should touch on the strentghs and areas for improvement.
+The feedback should be constructive and personable.
 
 Output the analysis in the following JSON format:
 
