@@ -46,7 +46,7 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({ onSelect }) => {
         {industries.map(({ name, icon: Icon, color }) => (
           <li
             key={name}
-            className="flex items-center justify-center h-32 w-full border border-blue-300 rounded-xl p-1"
+            className="flex items-center justify-center lg:h-32 w-full border border-blue-300 rounded-xl p-1"
           >
             <button
               className="w-full h-full text-center px-4 py-2 flex flex-col items-center justify-center space-y-2 rounded-lg border hover:bg-gray-100"
