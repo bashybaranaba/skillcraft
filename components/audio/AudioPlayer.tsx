@@ -5,17 +5,22 @@ import React, { useState, useEffect, useRef } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Loader2, Volume2Icon, CircleStopIcon } from "lucide-react";
 
+interface AudioPlayerProps {
+  audio: string;
+  loading: boolean;
+  externalAudioRef?: React.RefObject<HTMLAudioElement>;
+}
+
 export default function AudioPlayer({
   audio,
   loading,
-}: {
-  audio: string;
-  loading: boolean;
-}) {
+  externalAudioRef,
+}: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const internalAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = externalAudioRef || internalAudioRef;
 
   // Handle play and pause
   const playAudio = () => {
@@ -37,17 +42,37 @@ export default function AudioPlayer({
     }
   };
 
-  // Reset play button when the audio ends
-  const handleAudioEnd = () => {
-    setIsPlaying(false);
-  };
-
   // Set the duration when metadata is loaded
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
     }
   };
+
+  // Reset play button when the audio ends
+  const handleAudioEnd = () => {
+    setIsPlaying(false);
+  };
+
+  // Synchronize isPlaying state with actual audio element
+  useEffect(() => {
+    const audioElement = audioRef.current;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
+    if (audioElement) {
+      audioElement.addEventListener("play", handlePlay);
+      audioElement.addEventListener("pause", handlePause);
+    }
+
+    return () => {
+      if (audioElement) {
+        audioElement.removeEventListener("play", handlePlay);
+        audioElement.removeEventListener("pause", handlePause);
+      }
+    };
+  }, [audioRef]);
 
   // Autoplay when audio is available
   useEffect(() => {
@@ -60,11 +85,10 @@ export default function AudioPlayer({
           })
           .catch((error) => {
             console.error("Error playing audio:", error);
-            // Handle autoplay restriction errors here if necessary
           });
       }
     }
-  }, [audio]);
+  }, [audio, audioRef]);
 
   // Add and remove event listener for "ended" event
   useEffect(() => {
@@ -77,7 +101,7 @@ export default function AudioPlayer({
         audioElement.removeEventListener("ended", handleAudioEnd);
       };
     }
-  }, []);
+  }, [audioRef]);
 
   return (
     <div className="mt-4">

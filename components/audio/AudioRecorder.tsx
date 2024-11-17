@@ -65,12 +65,27 @@ const AudioRecorder: React.FC = () => {
     setLoadingScenario(false);
   };
 
+  const scenarioAudioRef = useRef<HTMLAudioElement>(null);
+  const responseAudioRef = useRef<HTMLAudioElement>(null);
+
   const startRecording = async () => {
     setLoading(true);
     setResponseAudio(null);
     setIsRecording(true);
     setStatusMessage("Listening");
     audioChunksRef.current = [];
+
+    // Pause scenario audio if it's playing
+    if (scenarioAudioRef.current) {
+      scenarioAudioRef.current.pause();
+      scenarioAudioRef.current.currentTime = 0;
+    }
+
+    // Pause response audio if it's playing
+    if (responseAudioRef.current) {
+      responseAudioRef.current.pause();
+      responseAudioRef.current.currentTime = 0;
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert("Your browser does not support audio recording");
@@ -218,7 +233,7 @@ const AudioRecorder: React.FC = () => {
   return (
     <div className="p-12 grid grid-cols-12 ">
       {/* Left Side */}
-      <div className="col-span-12 lg:col-span-6 p-4 border-r">
+      <div className="col-span-12 lg:col-span-6 p-4 lg:border-r">
         <div className="">
           {!selectedIndustry && (
             <IndustrySelector onSelect={handleIndustrySelect} />
@@ -271,10 +286,18 @@ const AudioRecorder: React.FC = () => {
                   </div>
                 </div>
                 {scenarioAudio && !responseAudio && (
-                  <AudioPlayer audio={scenarioAudio} loading={false} />
+                  <AudioPlayer
+                    audio={scenarioAudio}
+                    loading={false}
+                    externalAudioRef={scenarioAudioRef}
+                  />
                 )}
                 {responseAudio && (
-                  <AudioPlayer audio={responseAudio} loading={loadingAudio} />
+                  <AudioPlayer
+                    audio={responseAudio}
+                    loading={loadingAudio}
+                    externalAudioRef={responseAudioRef}
+                  />
                 )}
               </div>
               <div className="mt-2 p-5 border rounded-xl bg-indigo-500 text-white">
