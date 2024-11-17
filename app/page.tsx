@@ -147,7 +147,7 @@ export default function Home() {
         <div className="relative w-full max-w-full sm:max-w-3xl lg:max-w-6xl mt-14 rounded-xl border border-gray-200 dark:border-gray-700">
           <BorderBeam />
           <Image
-            src="/main-page.png"
+            src="/Main.png"
             alt="main page"
             layout="responsive"
             width={900}
